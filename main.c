@@ -67,12 +67,13 @@ int decode(FILE* restrict from, FILE* restrict to) {
     }
 
     if (read_ret) {
+        int decode_retval;
         if (read_ret == 4) {
-            decode_chunk_padding(out, in);
+            decode_retval = decode_chunk_padding(out, in);
         } else if (read_ret == 1 || read_ret == 2 || read_ret == 3) {
-            decode_chunk_partial(out, in, read_ret);
+            decode_retval = decode_chunk_partial(out, in, read_ret);
         }
-        write_ret = fwrite(out, 1, 3, to);
+        write_ret = fwrite(out, 1, decode_retval, to);
         if (write_ret < 3) {
             if (ferror(to)) {
                 return -1;
