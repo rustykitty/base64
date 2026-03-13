@@ -75,3 +75,4 @@ dkms.conf
 
 main
 test_base64
+ignore/
