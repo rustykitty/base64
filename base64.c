@@ -88,7 +88,7 @@ int encode_chunk_full(char out[static 4], const char in_s[static 3]) {
 
 // encode partial chunk
 // if i put a size for `in` gcc warns me
-int encode_chunk_partial(char out[static 4], const char in_s[], int length) {
+int encode_chunk_partial(char out[static 4], const char in_s[static 1], int length) {
     const unsigned char* in = in_s;
     switch (length) {
         case 1: {
