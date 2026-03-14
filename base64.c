@@ -76,7 +76,7 @@ static const char PADDING = '=';
 
 // encode full chunk
 int encode_chunk_full(char out[static 4], const char in[static 3]) {
-    long tmp = (long)in[0] << 16 | (long)in[1] << 8 | (long)in[2];
+    unsigned long tmp = (unsigned long)in[0] << 16 | (unsigned long)in[1] << 8 | (unsigned long)in[2];
     out[0] = ALPHABET[tmp >> 18 & 63];
     out[1] = ALPHABET[tmp >> 12 & 63];
     out[2] = ALPHABET[tmp >> 6 & 63];
@@ -89,7 +89,7 @@ int encode_chunk_full(char out[static 4], const char in[static 3]) {
 int encode_chunk_partial(char out[static 4], const char in[], int length) {
     switch (length) {
         case 1: {
-            long tmp = (long)in[0] << 16;
+            unsigned long tmp = (unsigned long)in[0] << 16;
             out[0] = ALPHABET[tmp >> 18 & 63];
             out[1] = ALPHABET[tmp >> 12 & 63];
             out[2] = PADDING;
@@ -97,7 +97,7 @@ int encode_chunk_partial(char out[static 4], const char in[], int length) {
             return 2;
         }
         case 2: {
-            long tmp = (long)in[0] << 16 | (long)in[1] << 8;
+            unsigned long tmp = (unsigned long)in[0] << 16 | (unsigned long)in[1] << 8;
             out[0] = ALPHABET[tmp >> 18 & 63];
             out[1] = ALPHABET[tmp >> 12 & 63];
             out[2] = ALPHABET[tmp >> 6 & 63];
@@ -122,7 +122,7 @@ int encode_chunk(char out[static 4], const char in[], int length) {
 }
 
 int decode_chunk_full(char out[static 3], const char in[static 4]) {
-    long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+    unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
             | REVERSE_ALPHABET[(int)in[1]] << 12
             | REVERSE_ALPHABET[(int)in[2]] << 6
             | REVERSE_ALPHABET[(int)in[3]];
@@ -142,13 +142,13 @@ int decode_chunk_partial(char out[], const char in[], int length) {
             return 1;
         }
         case 2: {
-            long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+            unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
                     | REVERSE_ALPHABET[(int)in[1]] << 12;
             out[0] = tmp >> 16 & 255;
             return 1;
         }
         case 3: {
-            long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+            unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
                     | REVERSE_ALPHABET[(int)in[1]] << 12
                     | REVERSE_ALPHABET[(int)in[2]] << 6;
             out[0] = tmp >> 16 & 255;
