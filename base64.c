@@ -76,7 +76,7 @@ static const unsigned char REVERSE_ALPHABET[256] = {
 static const char PADDING = '=';
 
 // encode full chunk
-int encode_chunk_full(char out[static 4], const char in_s[3]) {
+int encode_chunk_full(char out[static 4], const char in_s[static 3]) {
     const unsigned char* in = in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
     out[0] = ALPHABET[tmp >> 18 & 63];
