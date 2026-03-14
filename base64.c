@@ -76,8 +76,8 @@ static const unsigned char REVERSE_ALPHABET[256] = {
 static const char PADDING = '=';
 
 // encode full chunk
-int encode_chunk_full(char out[static 4], const char in_s[static 3]) {
-    const unsigned char* in = in_s;
+int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
+    const unsigned char* restrict in = in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
     out[0] = ALPHABET[tmp >> 18 & 63];
     out[1] = ALPHABET[tmp >> 12 & 63];
@@ -88,8 +88,8 @@ int encode_chunk_full(char out[static 4], const char in_s[static 3]) {
 
 // encode partial chunk
 // if i put a size for `in` gcc warns me
-int encode_chunk_partial(char out[static 4], const char in_s[static 1], int length) {
-    const unsigned char* in = in_s;
+int encode_chunk_partial(char out[static restrict 4], const char in_s[static restrict 1], int length) {
+    const unsigned char* restrict in = in_s;
     switch (length) {
         case 1: {
             unsigned long tmp = (unsigned long)in[0] << 16;
@@ -112,7 +112,7 @@ int encode_chunk_partial(char out[static 4], const char in_s[static 1], int leng
     }
 }
 
-int encode_chunk(char out[static 4], const char in[], int length) {
+int encode_chunk(char out[static restrict 4], const char in[restrict], int length) {
     switch (length) {
         case 1:
         case 2:
@@ -124,7 +124,7 @@ int encode_chunk(char out[static 4], const char in[], int length) {
     }
 }
 
-int decode_chunk_full(char out[static 3], const char in[static 4]) {
+int decode_chunk_full(char out[static restrict 3], const char in[static restrict 4]) {
     unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
             | REVERSE_ALPHABET[(int)in[1]] << 12
             | REVERSE_ALPHABET[(int)in[2]] << 6
@@ -135,7 +135,7 @@ int decode_chunk_full(char out[static 3], const char in[static 4]) {
     return 3;
 }
 
-int decode_chunk_partial(char out[], const char in[], int length) {
+int decode_chunk_partial(char out[restrict], const char in[restrict], int length) {
     switch (length) {
         // This should never happen normally since 6 < 8 < 12 (i.e. even 8 ASCII
         // bits would require 2 base64 bytes. But let's handle the condition
@@ -163,7 +163,7 @@ int decode_chunk_partial(char out[], const char in[], int length) {
     }
 }
 
-int decode_chunk(char out[], const char in[], int length) {
+int decode_chunk(char out[restrict], const char in[restrict], int length) {
     switch (length) {
         case 1:
         case 2:
@@ -177,7 +177,7 @@ int decode_chunk(char out[], const char in[], int length) {
 }
 
 // decode but auto-detect padding
-int decode_chunk_padding(char out[static 3], const char in[static 4]) {
+int decode_chunk_padding(char out[static restrict 3], const char in[static restrict 4]) {
     int length;
     const char* padding_ptr = (const char*)memchr((const int*)in, '=', 4);
     if (!padding_ptr) {
