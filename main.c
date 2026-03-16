@@ -43,6 +43,7 @@ int encode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
+                perror2(progname, "Error while encoding file");
                 return -1;
             }
         }
@@ -59,6 +60,7 @@ int encode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
+                perror2(progname, "Error while encoding file");
                 return -1;
             }
         }
@@ -80,6 +82,7 @@ int decode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 3, to);
         if (write_ret < 3) {
             if (ferror(to)) {
+                perror2(progname, "Error while decoding file");
                 return -1;
             }
         }
@@ -95,12 +98,15 @@ int decode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, decode_retval, to);
         if (write_ret < 3) {
             if (ferror(to)) {
+                perror2(progname, "Error while decoding file");
                 return -1;
             }
         }
     }
     return 1;
 }
+
+static const char* progname = "base64";
 
 int main(int argc, const char* argv[]) {
     const char* filename = argc > 1 ? argv[1] : "-";
@@ -121,8 +127,7 @@ int main(int argc, const char* argv[]) {
     } else {
         FILE* stream = fopen(filename, "rb");
         if (!stream) {
-            fputs("base64: ", stderr);
-            perror(filename);
+            perror2(progname, filename);
             return 1;
         }
         if (options.decode) {
@@ -131,13 +136,13 @@ int main(int argc, const char* argv[]) {
             retval = encode(stream, stdout);
         }
         if (fclose(stream) == EOF) {
-            perror("base64: ");
+            perror2(progname, filename);
             return 1;
         }
     }
 
     if (retval == -1) {
-        perror("base64: ");
+        perror(progname);
         return -1;
     }
     return 0;
