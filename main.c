@@ -100,8 +100,7 @@ int main(int argc, const char* argv[]) {
             retval = encode(stdin, stdout);
         }
     } else {
-        const char* mode = options.decode ? "r" : "rb";
-        FILE* stream = fopen(filename, mode);
+        FILE* stream = fopen(filename, "rb");
         if (!stream) {
             fputs("base64: ", stderr);
             perror(filename);
