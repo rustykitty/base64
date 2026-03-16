@@ -43,8 +43,7 @@ int encode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
-                perror2(progname, "Error while encoding file");
-                return -1;
+                goto error;
             }
         }
     }
@@ -60,13 +59,15 @@ int encode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
-                perror2(progname, "Error while encoding file");
-                return -1;
+                goto error;
             }
         }
         return 1;
     }
     return 1;
+error:
+    perror2(progname, "Error while encoding file");
+    return -1;
 }
 
 int decode(FILE* restrict from, FILE* restrict to) {
@@ -82,8 +83,7 @@ int decode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 3, to);
         if (write_ret < 3) {
             if (ferror(to)) {
-                perror2(progname, "Error while decoding file");
-                return -1;
+                goto error;
             }
         }
     }
@@ -98,12 +98,14 @@ int decode(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, decode_retval, to);
         if (write_ret < 3) {
             if (ferror(to)) {
-                perror2(progname, "Error while decoding file");
-                return -1;
+                goto error;
             }
         }
     }
     return 1;
+error:
+    perror2(progname, "Error while decoding file");
+    return -1;
 }
 
 static const char* progname = "base64";
@@ -127,23 +129,23 @@ int main(int argc, const char* argv[]) {
     } else {
         FILE* stream = fopen(filename, "rb");
         if (!stream) {
-            perror2(progname, filename);
-            return 1;
+            goto error;
         }
         if (options.decode) {
             retval = decode(stream, stdout);
         } else {
             retval = encode(stream, stdout);
         }
+        if (retval == -1) {
+            goto error;
+        }
         if (fclose(stream) == EOF) {
-            perror2(progname, filename);
-            return 1;
+            goto error;
         }
     }
 
-    if (retval == -1) {
-        perror(progname);
-        return -1;
-    }
     return 0;
+error:
+    perror2(progname, filename);
+    return 1;
 }
