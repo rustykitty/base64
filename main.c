@@ -10,6 +10,25 @@ static inline int min(int x, int y) {
     return x > y ? x : y;
 }
 
+#define ERRBUF_SIZE 2048
+
+// perror() but with progname and filename
+// e.g. base64: /nonexistent: No such file or directory
+// max 4095 bytes!
+void perror2(const char* progname, const char* filename) {
+    const char buf[ERRBUF_SIZE * 2] = {};
+    snprintf(buf, ERRBUF_SIZE * 2 - 1, "%s: %s", progname, filename);
+    perror(buf);
+}
+
+// perror() with three components
+// e.g. base64: can't stat: somefile: Input/output error
+void perror3(const char* progname, const char* msg, const char* filename) {
+    const char buf[ERRBUF_SIZE * 3] = {};
+    snprintf(buf, ERRBUF_SIZE * 3 - 1, "%s: %s: %s", progname, msg, filename);
+    perror(buf);
+}
+
 static struct options {
     bool decode;
 } options = { .decode = false };
