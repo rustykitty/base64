@@ -6,6 +6,8 @@
 
 #include <assert.h>
 
+static const char* progname = "base64";
+
 static inline int min(int x, int y) {
     return x > y ? x : y;
 }
@@ -107,8 +109,6 @@ error:
     perror2(progname, "Error while decoding file");
     return -1;
 }
-
-static const char* progname = "base64";
 
 int main(int argc, const char* argv[]) {
     const char* filename = argc > 1 ? argv[1] : "-";
