@@ -7,11 +7,13 @@ all: base64.o test_base64 main
 base64.o: base64.c base64.h
 	$(CC) $(CFLAGS) -c -o base64.o base64.c
 
+base64_simd.o: base64_simd.c base64_simd.h
+
 test_base64.o: test_base64.c
 	$(CC) $(CFLAGS) -c -o test_base64.o test_base64.c
 
 test_base64: test_base64.o base64.o
 	$(CC) $(CFLAGS) -o test_base64 test_base64.o base64.o $(LDFLAGS)
 
-main: main.o base64.o
-	$(CC) $(CFLAGS) -o main main.o base64.o $(LDFLAGS)
+main: main.o base64.o base64_simd.o
+	$(CC) $(CFLAGS) -o main main.o base64.o base64_simd.o $(LDFLAGS)

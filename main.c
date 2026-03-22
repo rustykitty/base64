@@ -1,12 +1,20 @@
 #include "base64.h"
+#include "base64_simd.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include <assert.h>
 
 static const char* progname = "base64";
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#include <unistd.h> // _POSIX_VERSION
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#endif
 
 static inline int min(int x, int y) {
     return x > y ? x : y;
@@ -35,12 +43,23 @@ static struct options {
     bool decode;
 } options = { .decode = false };
 
-int encode(FILE* restrict from, FILE* restrict to) {
-    char in[3];
-    char out[4];
+int encode_stream(FILE* restrict from, FILE* restrict to) {
+    char in[48];
+    char out[64];
     int read_ret;
     int write_ret;
-    while ((read_ret = fread(in, 1, 3, from)) == 3) {
+    while ((read_ret = fread(in, 1, 48, from)) == 48) {
+        encode_chunk_full_16x(out, in);
+        write_ret = fwrite(out, 1, 64, to);
+        if (write_ret < 64) {
+            if (ferror(to)) {
+                return -1;
+            }
+        }
+    }
+
+    // handling last couple rounds
+    while (read_ret > 3) {
         encode_chunk_full(out, in);
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
@@ -48,12 +67,9 @@ int encode(FILE* restrict from, FILE* restrict to) {
                 goto error;
             }
         }
+        read_ret -= 3;
     }
-
-    // handling last 0-2 chars
-    if (read_ret == 0) {
-        return 1;
-    } else {
+    if (read_ret > 0) {
         if (ferror(from)) {
             return -1;
         }
@@ -64,7 +80,6 @@ int encode(FILE* restrict from, FILE* restrict to) {
                 goto error;
             }
         }
-        return 1;
     }
     return 1;
 error:
@@ -72,7 +87,7 @@ error:
     return -1;
 }
 
-int decode(FILE* restrict from, FILE* restrict to) {
+int decode_stream(FILE* restrict from, FILE* restrict to) {
     char in[4];
     char out[3];
     int read_ret;
@@ -110,6 +125,46 @@ error:
     return -1;
 }
 
+// Linux only-- too bad!
+int encode_memory(const char* const restrict from_signed, FILE* restrict to, size_t length) {
+    const unsigned char* restrict from = (const unsigned char*) from_signed;
+    char out[64];
+    int write_ret;
+    size_t full_blocks = length / 48;
+    int partial_size = length % 48;
+    for (int i = 0; i < full_blocks; ++i) {
+        encode_chunk_full_16x(out, &from[i * 48]);
+        write_ret = fwrite(out, 1, 64, to);
+        if (write_ret < 64) {
+            if (ferror(to)) {
+                return -1;
+            }
+        }
+    }
+    const unsigned char* restrict p = from + full_blocks * 48;
+    while (partial_size > 3) {
+        encode_chunk_full(out, p);
+        write_ret = fwrite(out, 1, 4, to);
+        if (write_ret < 4) {
+            if (ferror(to)) {
+                return -1;
+            }
+        }
+        p += 3;
+        partial_size -= 3;
+    }
+    if (partial_size > 0) {
+        encode_chunk_partial(out, p, partial_size);
+        write_ret = fwrite(out, 1, 4, to);
+        if (write_ret < 4) {
+            if (ferror(to)) {
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
+
 int main(int argc, const char* argv[]) {
     const char* filename = argc > 1 ? argv[1] : "-";
     // todo: redo this with getopt() or something else, but platform-independent
@@ -122,19 +177,49 @@ int main(int argc, const char* argv[]) {
 
     if (strcmp(filename, "-") == 0) {
         if (options.decode) {
-            retval = decode(stdin, stdout);
+            retval = decode_stream(stdin, stdout);
         } else {
-            retval = encode(stdin, stdout);
+            retval = encode_stream(stdin, stdout);
         }
     } else {
-        FILE* stream = fopen(filename, "rb");
+#ifdef _POSIX_VERSION
+        int fd = open(filename, O_RDONLY);
+        if (fd == -1) {
+            fputs("Call to open failed: ", stderr);
+            perror(filename);
+            return -1;
+        }
+        struct stat stat;
+        int stat_retval = fstat(fd, &stat);
+        if (stat_retval == -1) {
+            fputs("Can't stat ", stderr);
+            perror(filename);
+        }
+        const char* buf = (const char*) mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (buf == MAP_FAILED) {
+            perror("mmap failed");
+            return -1;
+        }
+        if (options.decode) {
+            // todo: implement decode_memory
+            FILE* stream = fmemopen((void*)buf, stat.st_size, "r");
+            if (!stream) {
+                perror("");
+            }
+            decode_stream(stream, stdout);
+        } else {
+            encode_memory(buf, stdout, stat.st_size);
+        }
+#else
+        const char* mode = options.decode ? "r" : "rb";
+        FILE* stream = fopen(filename, mode);
         if (!stream) {
             goto error;
         }
         if (options.decode) {
-            retval = decode(stream, stdout);
+            retval = decode_stream(stream, stdout);
         } else {
-            retval = encode(stream, stdout);
+            retval = encode_stream(stream, stdout);
         }
         if (retval == -1) {
             goto error;
@@ -142,6 +227,7 @@ int main(int argc, const char* argv[]) {
         if (fclose(stream) == EOF) {
             goto error;
         }
+#endif
     }
 
     return 0;
