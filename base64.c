@@ -77,7 +77,7 @@ const char PADDING = '=';
 
 // encode full chunk
 int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
-    const unsigned char* restrict in = in_s;
+    const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
     out[0] = ALPHABET[tmp >> 18 & 63];
     out[1] = ALPHABET[tmp >> 12 & 63];
@@ -88,8 +88,8 @@ int encode_chunk_full(char out[static restrict 4], const char in_s[static restri
 
 // encode partial chunk
 // if i put a size for `in` gcc warns me
-int encode_chunk_partial(char out[static restrict 4], const char in_s[static restrict 1], int length) {
-    const unsigned char* restrict in = in_s;
+int encode_chunk_partial(char out[static restrict 4], const char in_s[restrict static 1], int length) {
+    const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     switch (length) {
         case 1: {
             unsigned long tmp = (unsigned long)in[0] << 16;

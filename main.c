@@ -127,12 +127,12 @@ error:
 
 // Linux only-- too bad!
 int encode_memory(const char* const restrict from_signed, FILE* restrict to, size_t length) {
-    const unsigned char* restrict from = (const unsigned char*) from_signed;
+    const char* restrict from = from_signed;
     char out[64];
     int write_ret;
     size_t full_blocks = length / 48;
     int partial_size = length % 48;
-    for (int i = 0; i < full_blocks; ++i) {
+    for (size_t i = 0; i < full_blocks; ++i) {
         encode_chunk_full_16x(out, &from[i * 48]);
         write_ret = fwrite(out, 1, 64, to);
         if (write_ret < 64) {
@@ -141,7 +141,7 @@ int encode_memory(const char* const restrict from_signed, FILE* restrict to, siz
             }
         }
     }
-    const unsigned char* restrict p = from + full_blocks * 48;
+    const char* restrict p = from + full_blocks * 48;
     while (partial_size > 3) {
         encode_chunk_full(out, p);
         write_ret = fwrite(out, 1, 4, to);
@@ -181,19 +181,21 @@ int main(int argc, const char* argv[]) {
         } else {
             retval = encode_stream(stdin, stdout);
         }
+        if (retval == -1) {
+            goto error;
+        }
     } else {
 #ifdef _POSIX_VERSION
         int fd = open(filename, O_RDONLY);
         if (fd == -1) {
             fputs("Call to open failed: ", stderr);
-            perror(filename);
-            return -1;
+            goto error;
         }
         struct stat stat;
         int stat_retval = fstat(fd, &stat);
         if (stat_retval == -1) {
             fputs("Can't stat ", stderr);
-            perror(filename);
+            goto error;
         }
         const char* buf = (const char*) mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
         if (buf == MAP_FAILED) {
@@ -204,7 +206,7 @@ int main(int argc, const char* argv[]) {
             // todo: implement decode_memory
             FILE* stream = fmemopen((void*)buf, stat.st_size, "r");
             if (!stream) {
-                perror("");
+                goto error;
             }
             decode_stream(stream, stdout);
         } else {

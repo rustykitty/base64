@@ -14,7 +14,7 @@ extern const char PADDING;
 
 int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static restrict 6]) {
 #if X86_64
-    const unsigned char* restrict in = in_s;
+    const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long long tmp = (unsigned long long)(in[0]) << 40 
                            | (unsigned long long)(in[1]) << 32
                            | (unsigned long long)(in[2]) << 24
