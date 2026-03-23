@@ -14,9 +14,9 @@ int main(int argc, char* argv[]) {
     chdir(dirname(argv[0]));
 
     // write to a file
-    FILE* out = fopen("test_data", "w");
+    FILE* out = fopen("tmp/test_data", "w");
     if (!out) {
-        perror("Failed to open ./test_data");
+        perror("Failed to open/create tmp/test_data");
     }
     // all 3-byte possibilities
     for (int i = 0; i < 256; ++i) {
@@ -36,30 +36,30 @@ int main(int argc, char* argv[]) {
 
     // coreutils base64
     // -w 0 disables wrapping
-    int coreutils_retval = system("base64 test_data -w 0 > coreutils.out");
-    int custom_retval = system("../main test_data > custom.out");
+    int coreutils_retval = system("base64 tmp/test_data -w 0 > tmp/coreutils.out");
+    int custom_retval = system("../main tmp/test_data > tmp/custom.out");
 
     if (coreutils_retval != 0 || custom_retval != 0) {
         return 1;
     }
 
     // compare files
-    int core_fd = open("coreutils.out", O_RDONLY);
-    int custom_fd = open("custom.out", O_RDONLY);
+    int core_fd = open("tmp/coreutils.out", O_RDONLY);
+    int custom_fd = open("tmp/custom.out", O_RDONLY);
 
     if (core_fd == -1) {
-        perror("Failed to open coreutils.out");
+        perror("Failed to open tmp/coreutils.out");
     } else if (custom_fd == -1) {
-        perror("Failed to open custom.out");
+        perror("Failed to open tmp/custom.out");
     }
 
     struct stat core_stat, custom_stat;
     if (fstat(core_fd, &core_stat) == -1) {
-        fprintf(stderr, "Can't stat %s", "coreutils.out");
+        fprintf(stderr, "Can't stat %s", "tmp/coreutils.out");
         perror("");
     }
     if (fstat(custom_fd, &custom_stat) == -1) {
-        fprintf(stderr, "Can't stat %s", "custom.out");
+        fprintf(stderr, "Can't stat %s", "tmp/custom.out");
         perror("");
     }
 
