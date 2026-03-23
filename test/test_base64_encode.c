@@ -13,11 +13,11 @@ int main(int argc, char* argv[]) {
     // cd "$(dirname "$0")"
     chdir(dirname(argv[0]));
 
-    // // compile the stuff -- just in case
-    // int make_retval = system("make -C ..");
-    // if (make_retval != 0) {
-    //     exit(make_retval);
-    // }
+    // compile the stuff -- just in case
+    int make_retval = system("make -C ..");
+    if (make_retval != 0) {
+        exit(make_retval);
+    }
 
     // write to a file
     FILE* out = fopen("test_data", "w");
