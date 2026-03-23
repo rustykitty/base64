@@ -12,5 +12,5 @@ base64_simd.o: base64_simd.c base64_simd.h
 main: main.o base64.o base64_simd.o
 	$(CC) $(CFLAGS) -o main main.o base64.o base64_simd.o $(LDFLAGS)
 
-test:
+test: all
 	make -C test
