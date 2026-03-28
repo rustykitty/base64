@@ -13,4 +13,4 @@ main: main.o base64.o base64_simd.o
 	$(CC) $(CFLAGS) -o main main.o base64.o base64_simd.o $(LDFLAGS)
 
 test: all
-	make -C test
+	$(MAKE) -C test
