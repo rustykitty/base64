@@ -6,6 +6,7 @@ int main() {
     FILE* out = fopen("tmp/test_data", "w");
     if (!out) {
         perror("Failed to open/create tmp/test_data");
+        return 1;
     }
     // all 3-byte possibilities
     for (int i = 0; i < 256; ++i) {
@@ -15,6 +16,7 @@ int main() {
                 int retval = fwrite(buf, 3, 1, out);
                 if (!retval) {
                     perror("Error occurred while writing data");
+                    goto error;
                 }
             }
         }
@@ -24,12 +26,19 @@ int main() {
             int retval = fputc(i, out);
             if (retval == EOF) {
                 perror("Error occurred while writing data");
+                goto error;
             }
         }
     }
     int retval = fputc(0, out);
     if (retval == EOF) {
         perror("Error occurred while writing data");
+        goto error;
     }
     fclose(out);
+
+    error:
+    fclose(out);
+    return 1;
+
 }
