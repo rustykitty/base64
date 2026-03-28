@@ -19,7 +19,17 @@ int main() {
             }
         }
     }
-    fputc(0, out); // this tests padding
-    fflush(out);
+    for (int i = 0; i < 15; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            int retval = fputc(i, out);
+            if (retval == EOF) {
+                perror("Error occurred while writing data");
+            }
+        }
+    }
+    int retval = fputc(0, out);
+    if (retval == EOF) {
+        perror("Error occurred while writing data");
+    }
     fclose(out);
 }
