@@ -36,6 +36,7 @@ int main() {
         goto error;
     }
     fclose(out);
+    return 0;
 
     error:
     fclose(out);
