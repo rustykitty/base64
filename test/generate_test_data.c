@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <errno.h>
+
+int main() {
+        // write to a file
+    FILE* out = fopen("tmp/test_data", "w");
+    if (!out) {
+        perror("Failed to open/create tmp/test_data");
+        return 1;
+    }
+    // all 3-byte possibilities
+    for (int i = 0; i < 256; ++i) {
+        for (int j = 0; j < 256; ++j) {
+            for (int k = 0; k < 256; ++k) {
+                char buf[3] = { i, j, k };
+                int retval = fwrite(buf, 3, 1, out);
+                if (!retval) {
+                    perror("Error occurred while writing data");
+                    goto error;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < 15; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            int retval = fputc(i, out);
+            if (retval == EOF) {
+                perror("Error occurred while writing data");
+                goto error;
+            }
+        }
+    }
+    int retval = fputc(0, out);
+    if (retval == EOF) {
+        perror("Error occurred while writing data");
+        goto error;
+    }
+    fclose(out);
+    return 0;
+
+    error:
+    fclose(out);
+    return 1;
+
+}
