@@ -13,6 +13,10 @@ generate_test_data: generate_test_data.c
 
 test_base64_encode: test_base64_encode.c
 
-.PHONY: all
+clean:
+	rm -rf tmp
+	rm -f generate_test_data test_base64_encode
+
+.PHONY: all clean
 
 .DEFAULT_GOAL = all
