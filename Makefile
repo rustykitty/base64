@@ -9,8 +9,10 @@ base64.o: base64.c base64.h
 
 base64_simd.o: base64_simd.c base64_simd.h
 
-main: main.o base64.o base64_simd.o
-	$(CC) $(CFLAGS) -o main main.o base64.o base64_simd.o $(LDFLAGS)
+utility.o: utility.c utility.h
+
+main: main.o base64.o base64_simd.o utility.o
+	$(CC) $(CFLAGS) -o main main.o base64.o base64_simd.o utility.o $(LDFLAGS)
 
 test: all
 	$(MAKE) -C test
