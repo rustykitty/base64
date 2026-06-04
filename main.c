@@ -31,7 +31,7 @@ int encode_stream(FILE* restrict from, FILE* restrict to) {
         write_ret = fwrite(out, 1, 64, to);
         if (write_ret < 64) {
             if (ferror(to)) {
-                return -1;
+                goto error;
             }
         }
     }
