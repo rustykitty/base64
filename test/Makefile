@@ -4,10 +4,11 @@ include ../Makefile.common
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 
-all: test_base64_encode generate_test_data
+all: test_base64_encode generate_test_data time_base64.sh
 	mkdir -p tmp
 	./generate_test_data
 	./test_base64_encode
+	./time_base64.sh
 
 generate_test_data: generate_test_data.c
 
