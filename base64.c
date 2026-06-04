@@ -81,24 +81,14 @@ const unsigned char REVERSE_ALPHABET[256] = {
 };
 const char PADDING = '=';
 
-#define _ENCODE(_x) ((_x) < 26 ? (_x) + 'A' : \
-                    ((_x) < 52 ? ((_x) - 26) + 'a' : \
-                    ((_x) < 62 ? ((_x) - 52) + '0' : \
-                    ((_x) == 62 ?            '+' : \
-                     ('/'))))) /* last one is 63 */
-
-#define ENCODE(_x) _ENCODE((unsigned char)(_x) & 63)
-
-#define DECODE(_x) REVERSE_ALPHABET[_x]
-
 // encode full chunk
 int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
-    out[0] = ENCODE(tmp >> 18 & 63);
-    out[1] = ENCODE(tmp >> 12 & 63);
-    out[2] = ENCODE(tmp >> 6 & 63);
-    out[3] = ENCODE(tmp & 63);
+    out[0] = ALPHABET[tmp >> 18 & 63];
+    out[1] = ALPHABET[tmp >> 12 & 63];
+    out[2] = ALPHABET[tmp >> 6 & 63];
+    out[3] = ALPHABET[tmp & 63];
     return 4;
 }
 
@@ -109,17 +99,17 @@ int encode_chunk_partial(char out[static restrict 4], const char in_s[restrict s
     switch (length) {
         case 1: {
             unsigned long tmp = (unsigned long)in[0] << 16;
-            out[0] = ENCODE(tmp >> 18 & 63);
-            out[1] = ENCODE(tmp >> 12 & 63);
+            out[0] = ALPHABET[tmp >> 18 & 63];
+            out[1] = ALPHABET[tmp >> 12 & 63];
             out[2] = PADDING;
             out[3] = PADDING;
             return 2;
         }
         case 2: {
             unsigned long tmp = (unsigned long)in[0] << 16 | (unsigned long)in[1] << 8;
-            out[0] = ENCODE(tmp >> 18 & 63);
-            out[1] = ENCODE(tmp >> 12 & 63);
-            out[2] = ENCODE(tmp >> 6 & 63);
+            out[0] = ALPHABET[tmp >> 18 & 63];
+            out[1] = ALPHABET[tmp >> 12 & 63];
+            out[2] = ALPHABET[tmp >> 6 & 63];
             out[3] = PADDING;
             return 3;
         }
@@ -141,10 +131,10 @@ int encode_chunk(char out[static restrict 4], const char in[restrict], int lengt
 }
 
 int decode_chunk_full(char out[static restrict 3], const char in[static restrict 4]) {
-    unsigned long tmp = DECODE((int)in[0]) << 18
-            | DECODE((int)in[1]) << 12
-            | DECODE((int)in[2]) << 6
-            | DECODE((int)in[3]);
+    unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+            | REVERSE_ALPHABET[(int)in[1]] << 12
+            | REVERSE_ALPHABET[(int)in[2]] << 6
+            | REVERSE_ALPHABET[(int)in[3]];
     out[0] = tmp >> 16 & 255;
     out[1] = tmp >> 8 & 255;
     out[2] = tmp & 255;
@@ -157,19 +147,19 @@ int decode_chunk_partial(char out[restrict], const char in[restrict], int length
         // bits would require 2 base64 bytes. But let's handle the condition
         // anyways.
         case 1: {
-            out[0] = DECODE((int)in[0]) << 2;
+            out[0] = REVERSE_ALPHABET[(int)in[0]] << 2;
             return 1;
         }
         case 2: {
-            unsigned long tmp = DECODE((int)in[0]) << 18
-                    | DECODE((int)in[1]) << 12;
+            unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+                    | REVERSE_ALPHABET[(int)in[1]] << 12;
             out[0] = tmp >> 16 & 255;
             return 1;
         }
         case 3: {
-            unsigned long tmp = DECODE((int)in[0]) << 18
-                    | DECODE((int)in[1]) << 12
-                    | DECODE((int)in[2]) << 6;
+            unsigned long tmp = REVERSE_ALPHABET[(int)in[0]] << 18
+                    | REVERSE_ALPHABET[(int)in[1]] << 12
+                    | REVERSE_ALPHABET[(int)in[2]] << 6;
             out[0] = tmp >> 16 & 255;
             out[1] = tmp >> 8 & 255;
             return 2;
