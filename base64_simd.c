@@ -21,14 +21,16 @@ int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static res
                            |      (unsigned long)(in[3]) << 16
                            |      (unsigned long)(in[4]) << 8
                            | in[5];
-    out[0] = ALPHABET[tmp >> 42 & 63];
-    out[1] = ALPHABET[tmp >> 36 & 63];
-    out[2] = ALPHABET[tmp >> 30 & 63];
-    out[3] = ALPHABET[tmp >> 24 & 63];
-    out[4] = ALPHABET[tmp >> 18 & 63];
-    out[5] = ALPHABET[tmp >> 12 & 63];
-    out[6] = ALPHABET[tmp >> 6 & 63];
-    out[7] = ALPHABET[tmp & 63];
+    unsigned long long res =
+        (unsigned long long)ALPHABET[tmp >> 42 & 63] |
+        (unsigned long long)ALPHABET[tmp >> 36 & 63] << 8 |
+        (unsigned long long)ALPHABET[tmp >> 30 & 63] << 16 |
+        (unsigned long long)ALPHABET[tmp >> 24 & 63] << 24 |
+        (unsigned long long)ALPHABET[tmp >> 18 & 63] << 32 |
+        (unsigned long long)ALPHABET[tmp >> 12 & 63] << 40 |
+        (unsigned long long)ALPHABET[tmp >> 6 & 63] << 48 |
+        (unsigned long long)ALPHABET[tmp & 63] << 56;
+    *(unsigned long long *)out = res;
 #else
     encode_chunk_full(out, in_s);
     encode_chunk_full(out + 4, in_s + 3);
