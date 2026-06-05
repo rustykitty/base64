@@ -13,7 +13,6 @@ extern const unsigned char REVERSE_ALPHABET[256];
 extern const char PADDING;
 
 hot int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static restrict 6]) {
-#if X86_64
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long long tmp = (unsigned long long)(in[0]) << 40 
                            | (unsigned long long)(in[1]) << 32
@@ -21,15 +20,16 @@ hot int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static
                            |      (unsigned long)(in[3]) << 16
                            |      (unsigned long)(in[4]) << 8
                            | in[5];
-    unsigned long long res =
-        (unsigned long long)ALPHABET[tmp >> 42 & 63] |
-        (unsigned long long)ALPHABET[tmp >> 36 & 63] << 8 |
-        (unsigned long long)ALPHABET[tmp >> 30 & 63] << 16 |
-        (unsigned long long)ALPHABET[tmp >> 24 & 63] << 24 |
-        (unsigned long long)ALPHABET[tmp >> 18 & 63] << 32 |
-        (unsigned long long)ALPHABET[tmp >> 12 & 63] << 40 |
-        (unsigned long long)ALPHABET[tmp >> 6 & 63] << 48 |
-        (unsigned long long)ALPHABET[tmp & 63] << 56;
+#if X86_64
+    uint64_t res =
+        (uint64_t)ALPHABET[tmp >> 42 & 63] |
+        (uint64_t)ALPHABET[tmp >> 36 & 63] << 8 |
+        (uint64_t)ALPHABET[tmp >> 30 & 63] << 16 |
+        (uint64_t)ALPHABET[tmp >> 24 & 63] << 24 |
+        (uint64_t)ALPHABET[tmp >> 18 & 63] << 32 |
+        (uint64_t)ALPHABET[tmp >> 12 & 63] << 40 |
+        (uint64_t)ALPHABET[tmp >> 6 & 63] << 48 |
+        (uint64_t)ALPHABET[tmp & 63] << 56;
     *(unsigned long long *)out = res;
 #else
     encode_chunk_full(out, in_s);

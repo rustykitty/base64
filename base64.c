@@ -92,11 +92,11 @@ hot int encode_chunk_full(char out[static restrict 4], const char in_s[static re
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
 #if X86_64
-    unsigned long res = ALPHABET[tmp >> 18 & 63] |
+    uint32_t res = ALPHABET[tmp >> 18 & 63] |
                         ALPHABET[tmp >> 12 & 63] << 8 |
                         ALPHABET[tmp >> 6 & 63] << 16 |
                         ALPHABET[tmp & 63] << 24;
-    *(unsigned long*)out = res;
+    *(uint32_t*)out = res;
 #else
     out[0] = ALPHABET[tmp >> 18 & 63];
     out[1] = ALPHABET[tmp >> 12 & 63];
