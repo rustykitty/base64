@@ -35,6 +35,12 @@ static inline int min(int x, int y) {
 void perror2(const char* progname, const char* filename);
 void perror3(const char* progname, const char* msg, const char* filename);
 
+// https://stackoverflow.com/a/66249936
+// I don't want to deal with less-common arches such as powerpc or armhf
 #if defined(__x86_64__) || defined(_M_X64)
 #define X86_64 1
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#define I386 1
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define ARM64 1
 #endif
