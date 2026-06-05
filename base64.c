@@ -1,9 +1,14 @@
+#if defined(__x86_64__) || defined(_M_X64)
+#define X86_64 1
+#endif
+
 #include "base64.h"
 #include "utility.h"
 
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef __GNUC__
 #define UNREACHABLE() __builtin_unreachable()
@@ -83,14 +88,21 @@ const unsigned char REVERSE_ALPHABET[256] = {
 const char PADDING = '=';
 
 // encode full chunk
-int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
+hot int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
+#if X86_64
     unsigned long res = ALPHABET[tmp >> 18 & 63] |
                         ALPHABET[tmp >> 12 & 63] << 8 |
                         ALPHABET[tmp >> 6 & 63] << 16 |
                         ALPHABET[tmp & 63] << 24;
     *(unsigned long*)out = res;
+#else
+    out[0] = ALPHABET[tmp >> 18 & 63];
+    out[1] = ALPHABET[tmp >> 12 & 63];
+    out[2] = ALPHABET[tmp >> 6 & 63];
+    out[3] = ALPHABET[tmp & 63];
+#endif
     return 4;
 }
 

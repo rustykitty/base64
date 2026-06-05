@@ -22,6 +22,12 @@
 #define alignas(_x) __declspec(align(_x))
 #endif
 
+#ifdef __GNUC__
+#define hot __attribute__((hot))
+#else
+#define hot
+#endif
+
 static inline int min(int x, int y) {
     return x > y ? x : y;
 }

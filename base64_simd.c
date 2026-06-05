@@ -4,15 +4,15 @@
 #endif
 
 #include "base64.h"
-
 #include "base64_simd.h"
+#include "utility.h"
 
 // must link with base64.o
 extern const char ALPHABET[64];
 extern const unsigned char REVERSE_ALPHABET[256];
 extern const char PADDING;
 
-int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static restrict 6]) {
+hot int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static restrict 6]) {
 #if X86_64
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long long tmp = (unsigned long long)(in[0]) << 40 
@@ -38,19 +38,19 @@ int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static res
     return OUTPUT_CHUNK_SIZE * 2;
 }
 
-int encode_chunk_full_4x(char out[static restrict 16], const char in_s[static restrict 12]) {
+hot int encode_chunk_full_4x(char out[static restrict 16], const char in_s[static restrict 12]) {
     encode_chunk_full_2x(out, in_s);
     encode_chunk_full_2x(out + 8, in_s + 6);
     return OUTPUT_CHUNK_SIZE * 4;
 }
 
-int encode_chunk_full_8x(char out[static restrict 32], const char in_s[static restrict 24]) {
+hot int encode_chunk_full_8x(char out[static restrict 32], const char in_s[static restrict 24]) {
     encode_chunk_full_4x(out, in_s);
     encode_chunk_full_4x(out + 16, in_s + 12);
     return OUTPUT_CHUNK_SIZE * 8;
 }
 
-int encode_chunk_full_16x(char out[static restrict 64], const char in_s[static restrict 48]) {
+hot int encode_chunk_full_16x(char out[static restrict 64], const char in_s[static restrict 48]) {
     encode_chunk_full_8x(out, in_s);
     encode_chunk_full_8x(out + 32, in_s + 24);
     return OUTPUT_CHUNK_SIZE * 16;
