@@ -86,10 +86,11 @@ const char PADDING = '=';
 int encode_chunk_full(char out[static restrict 4], const char in_s[static restrict 3]) {
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long tmp = (unsigned long)(in[0]) << 16 | (unsigned long)(in[1]) << 8 | in[2];
-    out[0] = ALPHABET[tmp >> 18 & 63];
-    out[1] = ALPHABET[tmp >> 12 & 63];
-    out[2] = ALPHABET[tmp >> 6 & 63];
-    out[3] = ALPHABET[tmp & 63];
+    unsigned long res = ALPHABET[tmp >> 18 & 63] |
+                        ALPHABET[tmp >> 12 & 63] << 8 |
+                        ALPHABET[tmp >> 6 & 63] << 16 |
+                        ALPHABET[tmp & 63] << 24;
+    *(unsigned long*)out = res;
     return 4;
 }
 
