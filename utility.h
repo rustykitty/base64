@@ -44,3 +44,11 @@ void perror3(const char* progname, const char* msg, const char* filename);
 #elif defined(__aarch64__) || defined(_M_ARM64)
 #define ARM64 1
 #endif
+
+#ifdef __GNUC__
+#define unreachable() __builtin_unreachable()
+#elif __STDC_VERSION__ >= 202311L
+#define unreachable() unreachable()
+#else
+#define unreachable() (void)0;
+#endif
