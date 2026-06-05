@@ -118,7 +118,7 @@ int encode_chunk_partial(char out[static restrict 4], const char in_s[restrict s
             return 3;
         }
         default:
-            UNREACHABLE();
+            unreachable();
     }
 }
 
@@ -130,7 +130,7 @@ int encode_chunk(char out[static restrict 4], const char in[restrict], int lengt
         case 3:
             return encode_chunk_full(out, in);
         default:
-            UNREACHABLE();
+            unreachable();
     }
 }
 
@@ -169,7 +169,7 @@ int decode_chunk_partial(char out[restrict], const char in[restrict], int length
             return 2;
         }
         default:
-            UNREACHABLE();
+            unreachable();
     }
 }
 
@@ -182,7 +182,7 @@ int decode_chunk(char out[restrict], const char in[restrict], int length) {
         case 4:
             return decode_chunk_full(out, in);
         default: 
-            UNREACHABLE();
+            unreachable();
     }
 }
 
