@@ -17,9 +17,9 @@ int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static res
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     unsigned long long tmp = (unsigned long long)(in[0]) << 40 
                            | (unsigned long long)(in[1]) << 32
-                           | (unsigned long long)(in[2]) << 24
-                           | (unsigned long long)(in[3]) << 16
-                           | (unsigned long long)(in[4]) << 8
+                           |      (unsigned long)(in[2]) << 24
+                           |      (unsigned long)(in[3]) << 16
+                           |      (unsigned long)(in[4]) << 8
                            | in[5];
     out[0] = ALPHABET[tmp >> 42 & 63];
     out[1] = ALPHABET[tmp >> 36 & 63];
