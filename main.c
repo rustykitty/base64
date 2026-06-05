@@ -22,8 +22,8 @@ static struct options {
 } options = { .decode = false };
 
 int encode_stream(FILE* restrict from, FILE* restrict to) {
-    char in[48];
-    char out[64];
+    alignas(64) char in[48];
+    alignas(64) char out[64];
     int read_ret;
     int write_ret;
     while ((read_ret = fread(in, 1, 48, from)) == 48) {
