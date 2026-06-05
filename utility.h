@@ -34,3 +34,7 @@ static inline int min(int x, int y) {
 
 void perror2(const char* progname, const char* filename);
 void perror3(const char* progname, const char* msg, const char* filename);
+
+#if defined(__x86_64__) || defined(_M_X64)
+#define X86_64 1
+#endif

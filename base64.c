@@ -1,7 +1,3 @@
-#if defined(__x86_64__) || defined(_M_X64)
-#define X86_64 1
-#endif
-
 #include "base64.h"
 #include "utility.h"
 

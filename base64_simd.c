@@ -1,11 +1,11 @@
-#if defined(__x86_64__) || defined(_M_X64)
-#define X86_64 1
+#include "utility.h"
+
+#if X86_64
 #include <immintrin.h>
 #endif
 
 #include "base64.h"
 #include "base64_simd.h"
-#include "utility.h"
 
 // must link with base64.o
 extern const char ALPHABET[64];
