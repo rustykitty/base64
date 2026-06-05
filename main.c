@@ -103,6 +103,7 @@ error:
     return -1;
 }
 
+#ifdef _POSIX_VERSION
 // Linux only-- too bad!
 int encode_memory(const char* const restrict from_signed, FILE* restrict to, size_t length) {
     const char* restrict from = from_signed;
@@ -142,6 +143,7 @@ int encode_memory(const char* const restrict from_signed, FILE* restrict to, siz
     }
     return 1;
 }
+#endif
 
 int main(int argc, const char* argv[]) {
     const char* filename = argc > 1 ? argv[1] : "-";
