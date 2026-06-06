@@ -33,9 +33,11 @@ int encode_stream(FILE* restrict from, FILE* restrict to) {
         }
     }
 
+    size_t i = 0;
+
     // handling last couple rounds
     while (read_ret > 3) {
-        encode_chunk_full(out, in);
+        encode_chunk_full(out, &in[i]);
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
@@ -43,12 +45,13 @@ int encode_stream(FILE* restrict from, FILE* restrict to) {
             }
         }
         read_ret -= 3;
+        i += 3;
     }
     if (read_ret > 0) {
         if (ferror(from)) {
             return -1;
         }
-        encode_chunk_partial(out, in, read_ret);
+        encode_chunk_partial(out, &in[i], read_ret);
         write_ret = fwrite(out, 1, 4, to);
         if (write_ret < 4) {
             if (ferror(to)) {
