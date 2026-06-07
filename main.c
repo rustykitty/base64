@@ -22,10 +22,10 @@ static struct options {
 // return val: how many chunks encoded
 size_t encode(char* const restrict out, const char* const restrict in, size_t size) {
     // how many chunks does the main loop process at once?
-    const static size_t BLOCK_SIZE = 16;
+    static const size_t BLOCK_SIZE = 16;
     // input/output block size, based on our chunk size (16x)
-    const static size_t IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE; // 3x
-    const static size_t OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE; // 4x
+    static const size_t IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE; // 3x
+    static const size_t OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE; // 4x
 
     // ceil(size / INPUT_CHUNK_SIZE)
     const size_t chunks = (size / INPUT_CHUNK_SIZE);
@@ -52,7 +52,7 @@ size_t encode(char* const restrict out, const char* const restrict in, size_t si
 }
 
 int encode_stream(FILE* restrict from, FILE* restrict to) {
-    const static size_t BLOCK_SIZE = 256,
+    static const size_t BLOCK_SIZE = 256,
                         IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE,
                         OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE;
 
@@ -63,7 +63,7 @@ int encode_stream(FILE* restrict from, FILE* restrict to) {
     while ((read_ret = fread(in, 1, IBS, from)) > 0) {
         const size_t chunks = encode(out, in, read_ret);
         write_ret = fwrite(out, 1, chunks * OUTPUT_CHUNK_SIZE, to);
-        if (write_ret < chunks * OUTPUT_CHUNK_SIZE) {
+        if (write_ret == EOF || (size_t)write_ret < chunks * OUTPUT_CHUNK_SIZE) {
             if (ferror(to)) {
                 goto error;
             }
