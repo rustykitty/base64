@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-int main(int argc, char* argv[]) {
+int main(void) {
     // coreutils base64
     // -w 0 disables wrapping
     int coreutils_retval = system("base64 tmp/test_data -w 0 > tmp/coreutils.out");

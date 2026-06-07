@@ -102,6 +102,8 @@ int decode_stream(FILE* restrict from, FILE* restrict to) {
             decode_retval = decode_chunk_padding(out, in);
         } else if (read_ret == 1 || read_ret == 2 || read_ret == 3) {
             decode_retval = decode_chunk_partial(out, in, read_ret);
+        } else {
+            unreachable();
         }
         write_ret = fwrite(out, 1, decode_retval, to);
         if (write_ret < 3) {
