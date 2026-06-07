@@ -18,46 +18,59 @@ static struct options {
     bool decode;
 } options = { .decode = false };
 
+// size in bytes, NOT chunks
+// return val: how many chunks encoded
+size_t encode(char* const restrict out, const char* const restrict in, size_t size) {
+    // how many chunks does the main loop process at once?
+    const static size_t BLOCK_SIZE = 16;
+    // input/output block size, based on our chunk size (16x)
+    const static size_t IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE; // 3x
+    const static size_t OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE; // 4x
+
+    // ceil(size / INPUT_CHUNK_SIZE)
+    const size_t chunks = (size / INPUT_CHUNK_SIZE);
+    const bool partial = size % INPUT_CHUNK_SIZE > 0;
+    const size_t blocks = chunks / BLOCK_SIZE;
+    const size_t remaining = chunks % BLOCK_SIZE;
+
+    for (size_t i = 0; i < blocks; ++i) {
+        encode_chunk_full_16x(out + (i * OBS), in + (i * IBS));
+    }
+    
+    for (size_t i = 0; i < remaining; ++i) {
+        encode_chunk_full(
+            out + (blocks * OBS) + (i * OUTPUT_CHUNK_SIZE),
+            in + (blocks * IBS) + (i * INPUT_CHUNK_SIZE)
+        );
+    }
+    if (partial) {
+        encode_chunk(out + (blocks * OBS) + (remaining * OUTPUT_CHUNK_SIZE), 
+                     in + (blocks * IBS) + (remaining * INPUT_CHUNK_SIZE), 
+                     size % INPUT_CHUNK_SIZE);
+    }
+    return chunks + partial;
+}
+
 int encode_stream(FILE* restrict from, FILE* restrict to) {
-    alignas(64) char in[48];
-    alignas(64) char out[64];
+    const static size_t BLOCK_SIZE = 256,
+                        IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE,
+                        OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE;
+
+    alignas(8) char in[IBS];
+    alignas(8) char out[OBS];
     int read_ret;
     int write_ret;
-    while ((read_ret = fread(in, 1, 48, from)) == 48) {
-        encode_chunk_full_16x(out, in);
-        write_ret = fwrite(out, 1, 64, to);
-        if (write_ret < 64) {
+    while ((read_ret = fread(in, 1, IBS, from)) > 0) {
+        const size_t chunks = encode(out, in, read_ret);
+        write_ret = fwrite(out, 1, chunks * OUTPUT_CHUNK_SIZE, to);
+        if (write_ret < chunks * OUTPUT_CHUNK_SIZE) {
             if (ferror(to)) {
                 goto error;
             }
         }
     }
-
-    size_t i = 0;
-
-    // handling last couple rounds
-    while (read_ret > 3) {
-        encode_chunk_full(out, &in[i]);
-        write_ret = fwrite(out, 1, 4, to);
-        if (write_ret < 4) {
-            if (ferror(to)) {
-                goto error;
-            }
-        }
-        read_ret -= 3;
-        i += 3;
-    }
-    if (read_ret > 0) {
-        if (ferror(from)) {
-            return -1;
-        }
-        encode_chunk_partial(out, &in[i], read_ret);
-        write_ret = fwrite(out, 1, 4, to);
-        if (write_ret < 4) {
-            if (ferror(to)) {
-                goto error;
-            }
-        }
+    if (read_ret == EOF && ferror(from)) {
+        goto error;
     }
     return 1;
 error:
