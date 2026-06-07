@@ -52,7 +52,7 @@ size_t encode(char* const restrict out, const char* const restrict in, size_t si
 }
 
 int encode_stream(FILE* restrict from, FILE* restrict to) {
-    static const size_t BLOCK_SIZE = 256,
+    static const size_t BLOCK_SIZE = 32768,
                         IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE,
                         OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE;
 
