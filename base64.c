@@ -98,7 +98,7 @@ hot int encode_chunk_full(char out[static restrict 4], const char in_s[static re
 
 // encode partial chunk
 // if i put a size for `in` gcc warns me
-int encode_chunk_partial(char out[static restrict 4], const char in_s[restrict static 1], int length) {
+int encode_chunk_partial(char out[static restrict 4], const char in_s[restrict], int length) {
     const unsigned char* restrict in = (const unsigned char* restrict) in_s;
     switch (length) {
         case 1: {
