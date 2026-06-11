@@ -13,9 +13,9 @@
 
 // alignas
 #if __STDC_VERSION__ >= 202311L
-#define alignas(_x) alignas(_x)
+// nothing
 #elif __STDC_VERSION__ >= 201112L
-#define alignas(_x) _Alignas(_x)
+#include <stdalign.h>
 #elif defined(__GNUC__)
 #define alignas(_x) __attribute__ ((aligned (_x)))
 #elif defined(_MSC_VER)
@@ -45,10 +45,12 @@ void perror3(const char* progname, const char* msg, const char* filename);
 #define ARM64 1
 #endif
 
-#ifdef __GNUC__
+#if __STDC_VERSION__ >= 202311L
+#include <stddef.h> // unreachable
+#elif defined(__GNUC__)
 #define unreachable() __builtin_unreachable()
-#elif __STDC_VERSION__ >= 202311L
-#define unreachable() unreachable()
+#elif defined(_MSC_VER)
+#define unreachable() __assume(0)
 #else
-#define unreachable() (void)0;
+#define unreachable() ((void)0)
 #endif
