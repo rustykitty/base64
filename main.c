@@ -138,8 +138,7 @@ int main(int argc, const char* argv[]) {
             goto error;
         }
     } else {
-        const char* mode = options.decode ? "r" : "rb";
-        FILE* stream = fopen(filename, mode);
+        FILE* stream = fopen(filename, "rb");
         if (!stream) {
             goto error;
         }
