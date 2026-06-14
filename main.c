@@ -53,6 +53,37 @@ size_t encode(char* const restrict out, const char* const restrict in, size_t si
     return chunks + partial;
 }
 
+size_t decode(char* const restrict out, const char* const restrict in, size_t size) {
+    static const size_t CHUNKS_PER_LOOP = 1;
+
+    static const size_t IBS = BLOCK_SIZE * ENCODED_CHUNK_SIZE,
+                        OBS = BLOCK_SIZE * DECODED_CHUNK_SIZE;
+
+    const size_t chunks = (size / ENCODED_CHUNK_SIZE);
+    const bool partial = size % DECODED_CHUNK_SIZE > 0;
+    const size_t blocks = chunks / CHUNKS_PER_LOOP;
+    const size_t remaining = chunks % CHUNKS_PER_LOOP;
+
+    for (size_t i = 0; i < blocks; ++i) {
+        decode_chunk_full(out + (i * OBS), in + (i * IBS));
+    }
+
+    for (size_t i = 0; i < remaining; ++i) {
+        decode_chunk_full(
+            out + (blocks * OBS) + (i * ENCODED_CHUNK_SIZE),
+            in + (blocks * IBS) + (i * DECODED_CHUNK_SIZE)
+        );
+    }
+    if (partial) {
+        decode_chunk(
+            out + (blocks * OBS) + (remaining * ENCODED_CHUNK_SIZE),
+            in + (blocks * IBS) + (remaining * DECODED_CHUNK_SIZE),
+            size % ENCODED_CHUNK_SIZE
+        );
+    }
+    return chunks + partial;
+}
+
 int encode_stream(FILE* restrict from, FILE* restrict to) {
     static const size_t IBS = BLOCK_SIZE * DECODED_CHUNK_SIZE,
                         OBS = BLOCK_SIZE * ENCODED_CHUNK_SIZE;
