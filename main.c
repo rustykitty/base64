@@ -18,20 +18,22 @@ static struct options {
     bool decode;
 } options = { .decode = false };
 
+#define BLOCK_SIZE 32768
+
 // size in bytes, NOT chunks
 // return val: how many chunks encoded
 size_t encode(char* const restrict out, const char* const restrict in, size_t size) {
     // how many chunks does the main loop process at once?
-    static const size_t BLOCK_SIZE = 16;
+    static const size_t CHUNKS_PER_LOOP = 16;
     // input/output block size, based on our chunk size (16x)
-    static const size_t IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE; // 3x
-    static const size_t OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE; // 4x
+    static const size_t IBS = CHUNKS_PER_LOOP * DECODED_CHUNK_SIZE; // 3x
+    static const size_t OBS = CHUNKS_PER_LOOP * ENCODED_CHUNK_SIZE; // 4x
 
-    // ceil(size / INPUT_CHUNK_SIZE)
-    const size_t chunks = (size / INPUT_CHUNK_SIZE);
-    const bool partial = size % INPUT_CHUNK_SIZE > 0;
-    const size_t blocks = chunks / BLOCK_SIZE;
-    const size_t remaining = chunks % BLOCK_SIZE;
+    // ceil(size / DECODED_CHUNK_SIZE)
+    const size_t chunks = (size / DECODED_CHUNK_SIZE);
+    const bool partial = size % DECODED_CHUNK_SIZE > 0;
+    const size_t blocks = chunks / CHUNKS_PER_LOOP;
+    const size_t remaining = chunks % CHUNKS_PER_LOOP;
 
     for (size_t i = 0; i < blocks; ++i) {
         encode_chunk_full_16x(out + (i * OBS), in + (i * IBS));
@@ -39,22 +41,21 @@ size_t encode(char* const restrict out, const char* const restrict in, size_t si
     
     for (size_t i = 0; i < remaining; ++i) {
         encode_chunk_full(
-            out + (blocks * OBS) + (i * OUTPUT_CHUNK_SIZE),
-            in + (blocks * IBS) + (i * INPUT_CHUNK_SIZE)
+            out + (blocks * OBS) + (i * ENCODED_CHUNK_SIZE),
+            in + (blocks * IBS) + (i * DECODED_CHUNK_SIZE)
         );
     }
     if (partial) {
-        encode_chunk(out + (blocks * OBS) + (remaining * OUTPUT_CHUNK_SIZE), 
-                     in + (blocks * IBS) + (remaining * INPUT_CHUNK_SIZE), 
-                     size % INPUT_CHUNK_SIZE);
+        encode_chunk(out + (blocks * OBS) + (remaining * ENCODED_CHUNK_SIZE), 
+                     in + (blocks * IBS) + (remaining * DECODED_CHUNK_SIZE), 
+                     size % DECODED_CHUNK_SIZE);
     }
     return chunks + partial;
 }
 
 int encode_stream(FILE* restrict from, FILE* restrict to) {
-    static const size_t BLOCK_SIZE = 32768,
-                        IBS = BLOCK_SIZE * INPUT_CHUNK_SIZE,
-                        OBS = BLOCK_SIZE * OUTPUT_CHUNK_SIZE;
+    static const size_t IBS = BLOCK_SIZE * DECODED_CHUNK_SIZE,
+                        OBS = BLOCK_SIZE * ENCODED_CHUNK_SIZE;
 
     alignas(8) char in[IBS];
     alignas(8) char out[OBS];
@@ -62,8 +63,8 @@ int encode_stream(FILE* restrict from, FILE* restrict to) {
     int write_ret;
     while ((read_ret = fread(in, 1, IBS, from)) > 0) {
         const size_t chunks = encode(out, in, read_ret);
-        write_ret = fwrite(out, 1, chunks * OUTPUT_CHUNK_SIZE, to);
-        if (write_ret == EOF || (size_t)write_ret < chunks * OUTPUT_CHUNK_SIZE) {
+        write_ret = fwrite(out, 1, chunks * ENCODED_CHUNK_SIZE, to);
+        if (write_ret == EOF || (size_t)write_ret < chunks * ENCODED_CHUNK_SIZE) {
             if (ferror(to)) {
                 goto error;
             }

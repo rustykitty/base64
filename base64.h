@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INPUT_CHUNK_SIZE 3
-#define OUTPUT_CHUNK_SIZE 4
+#define DECODED_CHUNK_SIZE 3
+#define ENCODED_CHUNK_SIZE 4
 
 int encode_chunk_full(char out[static 4], const char in[static 3]);
 int encode_chunk_partial(char out[static 4], const char in[restrict], int length);

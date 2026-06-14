@@ -35,23 +35,23 @@ hot int encode_chunk_full_2x(char out[static restrict 8], const char in_s[static
     encode_chunk_full(out, in_s);
     encode_chunk_full(out + 4, in_s + 3);
 #endif
-    return OUTPUT_CHUNK_SIZE * 2;
+    return ENCODED_CHUNK_SIZE * 2;
 }
 
 hot int encode_chunk_full_4x(char out[static restrict 16], const char in_s[static restrict 12]) {
     encode_chunk_full_2x(out, in_s);
     encode_chunk_full_2x(out + 8, in_s + 6);
-    return OUTPUT_CHUNK_SIZE * 4;
+    return ENCODED_CHUNK_SIZE * 4;
 }
 
 hot int encode_chunk_full_8x(char out[static restrict 32], const char in_s[static restrict 24]) {
     encode_chunk_full_4x(out, in_s);
     encode_chunk_full_4x(out + 16, in_s + 12);
-    return OUTPUT_CHUNK_SIZE * 8;
+    return ENCODED_CHUNK_SIZE * 8;
 }
 
 hot int encode_chunk_full_16x(char out[static restrict 64], const char in_s[static restrict 48]) {
     encode_chunk_full_8x(out, in_s);
     encode_chunk_full_8x(out + 32, in_s + 24);
-    return OUTPUT_CHUNK_SIZE * 16;
+    return ENCODED_CHUNK_SIZE * 16;
 }
