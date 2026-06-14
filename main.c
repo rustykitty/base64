@@ -56,13 +56,14 @@ size_t encode(char* const restrict out, const char* const restrict in, size_t si
 size_t decode(char* const restrict out, const char* const restrict in, size_t size) {
     static const size_t CHUNKS_PER_LOOP = 1;
 
-    static const size_t IBS = BLOCK_SIZE * ENCODED_CHUNK_SIZE,
-                        OBS = BLOCK_SIZE * DECODED_CHUNK_SIZE;
+    static const size_t IBS = CHUNKS_PER_LOOP * ENCODED_CHUNK_SIZE,
+                        OBS = CHUNKS_PER_LOOP * DECODED_CHUNK_SIZE;
 
     const size_t chunks = (size / ENCODED_CHUNK_SIZE);
-    const bool partial = size % DECODED_CHUNK_SIZE > 0;
+    const bool partial = size % ENCODED_CHUNK_SIZE > 0;
     const size_t blocks = chunks / CHUNKS_PER_LOOP;
-    const size_t remaining = chunks % CHUNKS_PER_LOOP;
+    // const size_t remaining = chunks % CHUNKS_PER_LOOP; // should be 0
+    const size_t remaining = 0;
 
     for (size_t i = 0; i < blocks; ++i) {
         decode_chunk_full(out + (i * OBS), in + (i * IBS));
@@ -111,38 +112,24 @@ error:
 }
 
 int decode_stream(FILE* restrict from, FILE* restrict to) {
-    char in[4];
-    char out[3];
+    static const size_t IBS = BLOCK_SIZE * ENCODED_CHUNK_SIZE,
+                        OBS = BLOCK_SIZE * DECODED_CHUNK_SIZE;
+
+    alignas(8) char in[IBS];
+    alignas(8) char out[OBS];
     int read_ret;
     int write_ret;
-    while ((read_ret = fread(in, 1, 4, from)) == 4) {
-        if (memchr(in, '=', 4)) {
-            break;
-        }
-        decode_chunk_full(out, in);
-        write_ret = fwrite(out, 1, 3, to);
-        if (write_ret < 3) {
+    while ((read_ret = fread(in, 1, IBS, from)) > 0) {
+        const size_t chunks = decode(out, in, read_ret);
+        write_ret = fwrite(out, 1, chunks * ENCODED_CHUNK_SIZE, to);
+        if (write_ret == EOF || (size_t)write_ret < chunks * ENCODED_CHUNK_SIZE) {
             if (ferror(to)) {
                 goto error;
             }
         }
     }
-
-    if (read_ret) {
-        int decode_retval;
-        if (read_ret == 4) {
-            decode_retval = decode_chunk_padding(out, in);
-        } else if (read_ret == 1 || read_ret == 2 || read_ret == 3) {
-            decode_retval = decode_chunk_partial(out, in, read_ret);
-        } else {
-            unreachable();
-        }
-        write_ret = fwrite(out, 1, decode_retval, to);
-        if (write_ret < 3) {
-            if (ferror(to)) {
-                goto error;
-            }
-        }
+    if (read_ret == EOF && ferror(from)) {
+        goto error;
     }
     return 1;
 error:
