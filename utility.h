@@ -1,3 +1,6 @@
+#include <stdbool.h> // bool
+#include <stddef.h> // size_t
+
 #define ERRBUF_SIZE 2048
 
 // restrict
@@ -54,3 +57,5 @@ void perror3(const char* progname, const char* msg, const char* filename);
 #else
 #define unreachable() ((void)0)
 #endif
+
+bool is_valid_base64(const char* restrict, size_t);

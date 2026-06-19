@@ -18,3 +18,13 @@ void perror3(const char* progname, const char* msg, const char* filename) {
     snprintf(buf, ERRBUF_SIZE * 3 - 1, "%s: %s: %s", progname, msg, filename);
     perror(buf);
 }
+
+static inline is_whitespace(char c) {
+    return c == "\n" || c == "\r" || c == " ";
+}
+
+bool is_valid_base64(const char* restrict buf, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        
+    }
+}
