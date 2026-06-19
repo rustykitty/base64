@@ -37,6 +37,7 @@ static inline int min(int x, int y) {
 
 void perror2(const char* progname, const char* filename);
 void perror3(const char* progname, const char* msg, const char* filename);
+void custom_error(const char* progname, const char* msg);
 
 // https://stackoverflow.com/a/66249936
 // I don't want to deal with less-common arches such as powerpc or armhf

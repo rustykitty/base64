@@ -19,6 +19,10 @@ void perror3(const char* progname, const char* msg, const char* filename) {
     perror(buf);
 }
 
+void custom_error(const char* progname, const char* msg) {
+    fprintf(stderr, "%s: %s", progname, msg);
+}
+
 static inline is_whitespace(char c) {
     return c == "\n" || c == "\r" || c == " ";
 }
